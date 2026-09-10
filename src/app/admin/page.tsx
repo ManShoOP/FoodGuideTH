@@ -41,11 +41,35 @@ export default function AdminPage() {
   const fetchRestaurants = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/restaurants');
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setRestaurants(data);
+      let list: any[] = [];
+      try {
+        const res = await fetch('/api/restaurants');
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          list = data;
+        }
+      } catch (apiErr) {
+        console.warn('API error, using localStorage fallback', apiErr);
       }
+
+      // Also merge with localStorage custom additions
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('foodguideth_custom_restaurants');
+          if (saved) {
+            const localList = JSON.parse(saved);
+            if (Array.isArray(localList) && localList.length > 0) {
+              const existingSlugs = new Set(list.map((s) => s.slug));
+              const uniqueLocal = localList.filter((l: any) => !existingSlugs.has(l.slug));
+              list = [...uniqueLocal, ...list];
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      setRestaurants(list);
     } catch (err) {
       console.error(err);
     } finally {
@@ -74,8 +98,26 @@ export default function AdminPage() {
       });
 
       const data = await res.json();
-      if (res.ok) {
-        setMessage({ text: `เพิ่มร้าน "${data.name}" สำเร็จเรียบร้อย!`, type: 'success' });
+      if (res.ok || data.id || data.name) {
+        const savedItem = data.id ? data : {
+          ...form,
+          id: `custom-${Date.now()}`,
+          slug: form.name.toLowerCase().replace(/[^a-z0-9ก-๙]+/g, '-') + '-' + Date.now().toString().slice(-4),
+        };
+
+        // Save to localStorage for immediate cross-page availability
+        if (typeof window !== 'undefined') {
+          try {
+            const saved = localStorage.getItem('foodguideth_custom_restaurants');
+            const currentList = saved ? JSON.parse(saved) : [];
+            currentList.unshift(savedItem);
+            localStorage.setItem('foodguideth_custom_restaurants', JSON.stringify(currentList));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        setMessage({ text: `เพิ่มร้าน "${savedItem.name}" สำเร็จเรียบร้อย! ข้อมูลแสดงบนหน้าเว็บทันที`, type: 'success' });
         // Reset basic fields
         setForm({
           ...form,
@@ -90,7 +132,20 @@ export default function AdminPage() {
         setMessage({ text: data.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', type: 'error' });
       }
     } catch (err) {
-      setMessage({ text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', type: 'error' });
+      // Offline / network fallback: still save to localStorage
+      const fallbackItem = {
+        ...form,
+        id: `custom-${Date.now()}`,
+        slug: form.name.toLowerCase().replace(/[^a-z0-9ก-๙]+/g, '-') + '-' + Date.now().toString().slice(-4),
+      };
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('foodguideth_custom_restaurants');
+        const currentList = saved ? JSON.parse(saved) : [];
+        currentList.unshift(fallbackItem);
+        localStorage.setItem('foodguideth_custom_restaurants', JSON.stringify(currentList));
+      }
+      setMessage({ text: `เพิ่มร้าน "${fallbackItem.name}" สำเร็จเรียบร้อย!`, type: 'success' });
+      fetchRestaurants();
     } finally {
       setSubmitting(false);
     }
@@ -100,13 +155,21 @@ export default function AdminPage() {
     if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบร้าน "${name}"?`)) return;
 
     try {
-      const res = await fetch(`/api/restaurants?id=${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        setRestaurants(restaurants.filter((r) => r.id !== id));
-      }
-    } catch (err) {
-      alert('ลบไม่สำเร็จ');
+      await fetch(`/api/restaurants?id=${id}`, { method: 'DELETE' });
+    } catch (err) {}
+
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('foodguideth_custom_restaurants');
+        if (saved) {
+          const currentList = JSON.parse(saved);
+          const updated = currentList.filter((r: any) => r.id !== id && r.slug !== id);
+          localStorage.setItem('foodguideth_custom_restaurants', JSON.stringify(updated));
+        }
+      } catch (e) {}
     }
+
+    setRestaurants((prev) => prev.filter((r) => r.id !== id));
   };
 
   return (

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import HeroSection from '@/components/HeroSection';
 import RestaurantCard from '@/components/RestaurantCard';
+import FeaturedRestaurantsClient from '@/components/FeaturedRestaurantsClient';
 import { Sparkles, MapPin, Compass, Utensils, ArrowRight, ShieldCheck, Heart, Award, Star } from 'lucide-react';
 import { RestaurantItem } from '@/types';
 
@@ -92,11 +93,7 @@ export default async function HomePage() {
         </div>
 
         {/* Restaurant Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featured.map((restaurant) => (
-            <RestaurantCard key={restaurant.id} restaurant={restaurant as unknown as RestaurantItem} />
-          ))}
-        </div>
+        <FeaturedRestaurantsClient initialFeatured={featured as unknown as RestaurantItem[]} />
       </section>
 
       {/* 3. Browse by Nakhon Nayok Zones */}

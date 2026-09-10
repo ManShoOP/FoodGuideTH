@@ -1,6 +1,7 @@
 import React from 'react';
 import { prisma } from '@/lib/prisma';
 import RestaurantCard from '@/components/RestaurantCard';
+import RestaurantListClient from '@/components/RestaurantListClient';
 import { RestaurantItem } from '@/types';
 import { Search, MapPin, Sparkles, Filter, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
@@ -202,39 +203,14 @@ export default async function RestaurantsPage({ searchParams }: RestaurantsPageP
 
       </div>
 
-      {/* Results Count */}
-      <div className="mb-6 flex items-center justify-between text-sm text-gray-400">
-        <p>
-          พบร้านอาหารหรู <span className="text-amber-400 font-bold">{filteredRestaurants.length}</span> ร้าน
-        </p>
-        <span className="text-xs text-gray-500">เรียงตามคะแนนรีวิวสูงสุด</span>
-      </div>
-
-      {/* Grid or Empty State */}
-      {filteredRestaurants.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredRestaurants.map((restaurant) => (
-            <RestaurantCard key={restaurant.id} restaurant={restaurant as unknown as RestaurantItem} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-20 bg-gray-900/50 rounded-2xl border border-gray-800 p-8">
-          <div className="w-12 h-12 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto mb-4">
-            <Search className="w-6 h-6" />
-          </div>
-          <h3 className="text-lg font-bold text-white mb-2">ไม่พบร้านอาหารที่ตรงกับเงื่อนไข</h3>
-          <p className="text-sm text-gray-400 max-w-md mx-auto mb-6">
-            ลองปรับเปลี่ยนคำค้นหา หรือเลือกย่านและหมวดหมู่อื่นในจังหวัดนครนายก
-          </p>
-          <Link
-            href="/restaurants"
-            className="px-5 py-2.5 rounded-xl bg-amber-500 text-gray-950 font-semibold text-xs hover:bg-amber-400 transition-colors"
-          >
-            ดูร้านอาหารทั้งหมด
-          </Link>
-        </div>
-      )}
-
+      {/* Dynamic Client List with LocalStorage and Server Sync */}
+      <RestaurantListClient
+        initialRestaurants={filteredRestaurants as unknown as RestaurantItem[]}
+        searchQuery={q}
+        selectedZone={selectedZone}
+        selectedCategory={selectedCategory}
+        selectedPrice={selectedPrice}
+      />
     </div>
   );
 }
