@@ -28,14 +28,35 @@ interface RestaurantDetailPageProps {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://foodguideth.com';
 
+import { initialRestaurants } from '@/data/seedData';
+
+export async function generateStaticParams() {
+  try {
+    const restaurants = await prisma.restaurant.findMany({ select: { slug: true } });
+    if (restaurants.length > 0) return restaurants.map((r) => ({ slug: r.slug }));
+  } catch (err) {
+    // fallback
+  }
+  return initialRestaurants.map((r) => ({ slug: r.slug }));
+}
+
 // Generate Dynamic Metadata for Google Search & Social Media
 export async function generateMetadata({
   params,
 }: RestaurantDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const restaurant = await prisma.restaurant.findUnique({
-    where: { slug },
-  });
+  let restaurant: any = null;
+  try {
+    restaurant = await prisma.restaurant.findUnique({
+      where: { slug },
+    });
+  } catch (err) {
+    // fallback
+  }
+
+  if (!restaurant) {
+    restaurant = initialRestaurants.find((r) => r.slug === slug);
+  }
 
   if (!restaurant) {
     return {
@@ -84,9 +105,18 @@ export default async function RestaurantDetailPage({
   params,
 }: RestaurantDetailPageProps) {
   const { slug } = await params;
-  const restaurant = await prisma.restaurant.findUnique({
-    where: { slug },
-  });
+  let restaurant: any = null;
+  try {
+    restaurant = await prisma.restaurant.findUnique({
+      where: { slug },
+    });
+  } catch (err) {
+    // fallback
+  }
+
+  if (!restaurant) {
+    restaurant = initialRestaurants.find((r) => r.slug === slug);
+  }
 
   if (!restaurant) {
     notFound();

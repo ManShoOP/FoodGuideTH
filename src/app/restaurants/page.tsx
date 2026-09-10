@@ -24,9 +24,19 @@ export default async function RestaurantsPage({ searchParams }: RestaurantsPageP
   const selectedPrice = params.price || '';
 
   // Query all restaurants from Prisma Database
-  const allRestaurants = await prisma.restaurant.findMany({
-    orderBy: { rating: 'desc' },
-  });
+  let allRestaurants: any[] = [];
+  try {
+    allRestaurants = await prisma.restaurant.findMany({
+      orderBy: { rating: 'desc' },
+    });
+  } catch (err) {
+    console.error('Error fetching restaurants:', err);
+  }
+
+  if (!allRestaurants || allRestaurants.length === 0) {
+    const { initialRestaurants } = await import('@/data/seedData');
+    allRestaurants = initialRestaurants.map((r, idx) => ({ ...r, id: `seed-${idx}` }));
+  }
 
   // Filter based on parameters
   const filteredRestaurants = allRestaurants.filter((rest) => {

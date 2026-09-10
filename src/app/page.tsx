@@ -6,6 +6,8 @@ import RestaurantCard from '@/components/RestaurantCard';
 import { Sparkles, MapPin, Compass, Utensils, ArrowRight, ShieldCheck, Heart, Award, Star } from 'lucide-react';
 import { RestaurantItem } from '@/types';
 
+import { initialRestaurants } from '@/data/seedData';
+
 // Revalidate every 60 seconds
 export const revalidate = 60;
 
@@ -17,6 +19,10 @@ export default async function HomePage() {
     });
   } catch (error) {
     console.error('Database query error on homepage:', error);
+  }
+
+  if (!restaurants || restaurants.length === 0) {
+    restaurants = initialRestaurants.map((r, idx) => ({ ...r, id: `seed-${idx}` }));
   }
 
   const featured = restaurants.filter((r) => r.isFeatured).slice(0, 6);

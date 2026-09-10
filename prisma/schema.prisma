@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x", "rhel-openssl-1.0.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -13,18 +14,18 @@ model Restaurant {
   slug            String   @unique
   tagline         String
   description     String
-  category        String   // เช่น Riverside Luxury, Fine Dining, Premium Cafe, European & Wine Bar
-  zone            String   // เช่น เขื่อนขุนด่าน, สาริกา, ริมแม่น้ำนครนายก, นางรอง, บ้านนา
+  category        String
+  zone            String
   address         String
-  priceRange      String   // เช่น $$$ (500 - 1,000 บ.), $$$$ (1,000 - 2,500+ บ.)
+  priceRange      String
   rating          Float    @default(4.8)
   reviewCount     Int      @default(45)
   phone           String
   openingHours    String
   coverImage      String
-  images          String   // JSON array of strings
-  signatureDishes String   // Comma separated or JSON string
-  highlights      String   // Comma separated or JSON string
+  images          String
+  signatureDishes String
+  highlights      String
   googleMapUrl    String
   isFeatured      Boolean  @default(true)
   isLuxury        Boolean  @default(true)

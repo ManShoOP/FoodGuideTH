@@ -1,16 +1,21 @@
 import { MetadataRoute } from 'next';
 import { prisma } from '@/lib/prisma';
+import { initialRestaurants } from '@/data/seedData';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://foodguideth.com';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  let restaurants: { slug: string; updatedAt: Date }[] = [];
+  let restaurants: { slug: string; updatedAt?: Date }[] = [];
   try {
     restaurants = await prisma.restaurant.findMany({
       select: { slug: true, updatedAt: true },
     });
   } catch (err) {
     console.error('Error generating sitemap:', err);
+  }
+
+  if (!restaurants || restaurants.length === 0) {
+    restaurants = initialRestaurants.map((r) => ({ slug: r.slug, updatedAt: new Date() }));
   }
 
   const restaurantUrls: MetadataRoute.Sitemap = restaurants.map((rest) => ({
