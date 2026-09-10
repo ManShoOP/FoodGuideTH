@@ -362,14 +362,97 @@ export default function AdminPage() {
             </div>
 
             <div>
-              <label className="block text-gray-300 font-medium mb-1">รูปภาพหน้าปก (Image URL)</label>
+              <label className="block text-gray-300 font-medium mb-1">รูปภาพหน้าร้าน (เลือกจากเครื่อง หรือใส่ลิงก์ URL)</label>
+              
+              {/* File upload button */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-2">
+                <label className="cursor-pointer px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-amber-300 border border-amber-500/30 text-xs font-medium text-center transition-colors">
+                  📁 เลือกรูปภาพจากเครื่องคอมของคุณ
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = () => {
+                          const canvas = document.createElement('canvas');
+                          const maxW = 1000;
+                          const scale = maxW / img.width;
+                          canvas.width = maxW;
+                          canvas.height = img.height * scale;
+                          const ctx = canvas.getContext('2d');
+                          ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+                          const compressed = canvas.toDataURL('image/jpeg', 0.8);
+                          setForm({ ...form, coverImage: compressed });
+                        };
+                        img.src = event.target?.result as string;
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </label>
+                <span className="text-xs text-gray-500 text-center sm:text-left">หรือใส่ URL รูปภาพด้านล่าง</span>
+              </div>
+
               <input
-                type="url"
+                type="text"
                 name="coverImage"
                 value={form.coverImage}
                 onChange={handleChange}
-                className="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500 text-xs"
+                placeholder="https://images.unsplash.com/..."
+                className="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500 text-xs font-mono"
               />
+
+              {/* Quick Preset Images */}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="text-[11px] text-gray-400">รูปแนะนำด่วน:</span>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, coverImage: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80' })}
+                  className="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:text-amber-400 border border-gray-700"
+                >
+                  สเต็ก & ซี่โครง
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, coverImage: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80' })}
+                  className="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:text-amber-400 border border-gray-700"
+                >
+                  อาหารไทย & สวนบัว
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, coverImage: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80' })}
+                  className="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:text-amber-400 border border-gray-700"
+                >
+                  วิวพระอาทิตย์ตก
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, coverImage: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1200&q=80' })}
+                  className="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:text-amber-400 border border-gray-700"
+                >
+                  คาเฟ่ & High Tea
+                </button>
+              </div>
+
+              {/* Live Preview */}
+              {form.coverImage && (
+                <div className="mt-3 relative h-36 rounded-xl overflow-hidden border border-gray-800">
+                  <img
+                    src={form.coverImage}
+                    alt="ตัวอย่างรูปภาพ"
+                    className="w-full h-full object-cover"
+                  />
+                  <span className="absolute bottom-2 left-2 text-[10px] bg-black/70 px-2 py-0.5 rounded text-amber-300">
+                    พรีวิวรูปภาพหน้าร้าน
+                  </span>
+                </div>
+              )}
             </div>
 
             <div>
