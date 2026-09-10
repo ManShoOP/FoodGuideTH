@@ -17,12 +17,17 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
     highlights = [];
   }
 
+  const ratingNumber = Number(restaurant.rating) || 4.8;
+  const reviewCount = restaurant.reviewCount ?? 1;
+  const priceDisplay = (restaurant.priceRange || '$$$$').split(' ')[0];
+  const openingHoursDisplay = (restaurant.openingHours || '11:00 - 22:00 น.').split(' ')[0];
+
   return (
     <div className="group rounded-2xl overflow-hidden bg-gray-900/70 border border-gray-800 hover:border-amber-500/50 shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col">
       {/* Cover Image Container */}
       <div className="relative h-60 w-full overflow-hidden bg-gray-950">
         <img
-          src={restaurant.coverImage}
+          src={restaurant.coverImage || 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80'}
           alt={`ร้านอาหารหรู ${restaurant.name} นครนายก`}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
@@ -52,12 +57,12 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
           <div className="flex items-center space-x-1.5 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg border border-amber-500/30">
             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-            <span className="text-xs font-bold text-white">{restaurant.rating.toFixed(1)}</span>
-            <span className="text-[11px] text-gray-400">({restaurant.reviewCount})</span>
+            <span className="text-xs font-bold text-white">{ratingNumber.toFixed(1)}</span>
+            <span className="text-[11px] text-gray-400">({reviewCount})</span>
           </div>
 
           <div className="text-xs font-semibold text-amber-300 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg border border-gray-700">
-            {restaurant.priceRange.split(' ')[0]}
+            {priceDisplay}
           </div>
         </div>
       </div>
@@ -96,7 +101,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
         <div className="mt-5 pt-4 border-t border-gray-800/80 flex items-center justify-between">
           <div className="flex items-center space-x-1 text-xs text-gray-400">
             <Clock className="w-3.5 h-3.5 text-gray-500" />
-            <span className="truncate max-w-[140px]">{restaurant.openingHours.split(' ')[0]}</span>
+            <span className="truncate max-w-[140px]">{openingHoursDisplay}</span>
           </div>
 
           <Link

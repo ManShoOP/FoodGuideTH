@@ -24,20 +24,38 @@ export default function RestaurantListClient({
   const [restaurants, setRestaurants] = useState<RestaurantItem[]>(initialRestaurants);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('foodguideth_custom_restaurants');
-      if (saved) {
-        const customList: RestaurantItem[] = JSON.parse(saved);
-        if (Array.isArray(customList) && customList.length > 0) {
-          // Combine custom restaurants (first) and initial ones
-          const existingSlugs = new Set(customList.map((c) => c.slug));
-          const filteredInitial = initialRestaurants.filter((r) => !existingSlugs.has(r.slug));
-          setRestaurants([...customList, ...filteredInitial]);
+    async function loadData() {
+      let combined: RestaurantItem[] = [...initialRestaurants];
+      try {
+        const res = await fetch('/api/restaurants');
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const apiSlugs = new Set(data.map((d: any) => d.slug));
+          const restOfInit = initialRestaurants.filter((r) => !apiSlugs.has(r.slug));
+          combined = [...data, ...restOfInit];
         }
+      } catch (err) {
+        console.warn('Could not fetch from /api/restaurants:', err);
       }
-    } catch (e) {
-      console.error('Error reading custom restaurants from localStorage:', e);
+
+      try {
+        const saved = localStorage.getItem('foodguideth_custom_restaurants');
+        if (saved) {
+          const customList: RestaurantItem[] = JSON.parse(saved);
+          if (Array.isArray(customList) && customList.length > 0) {
+            const customSlugs = new Set(customList.map((c) => c.slug));
+            const rest = combined.filter((r) => !customSlugs.has(r.slug));
+            combined = [...customList, ...rest];
+          }
+        }
+      } catch (err) {
+        console.error('Error reading custom restaurants from localStorage:', err);
+      }
+
+      setRestaurants(combined);
     }
+
+    loadData();
   }, [initialRestaurants]);
 
   // Filter list based on props
